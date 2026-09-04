@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NewsBreak Local AI Commerce — Columbus Plumbing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,500;6..72,600;6..72,700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --red: #C8102E;
+    --red-soft: #FBEEF0;
+    --red-mid: #F3D6DC;
+    --red-line: #E9C6CD;
+    --ink: #141414;
+    --muted: #565656;
+    --faint: #8A8A8A;
+    --line: #E4E3DE;
+    --paper: #FFFDF8;
+    --soft: #F4F3EE;
+    --chip: #ECEBE5;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #1A1A1A; color: var(--ink); }
+  body { font-family: Inter, "SF Pro Text", "PingFang SC", sans-serif; overflow: hidden; }
+
+  .frame { height: 100%; display: flex; align-items: center; justify-content: center; }
+  .viewport { width: 1440px; height: 810px; overflow: hidden; flex: 0 0 auto; }
+  .stage-wrap { width: 1440px; height: 810px; transform-origin: top left; }
+  .stage { width: 1440px; height: 810px; background: var(--paper); position: relative; overflow: hidden; }
+
+  .slide { display: none; position: absolute; inset: 0; padding: 44px 60px 64px; }
+  .slide.active { display: flex; flex-direction: column; }
+
+  /* header */
+  .sec { display: flex; align-items: baseline; gap: 14px; margin: 0 0 14px; }
+  .sec .num { font-size: 17px; font-weight: 700; color: var(--faint); }
+  .sec .name { font-size: 34px; font-weight: 800; letter-spacing: -0.015em; text-transform: uppercase; color: var(--red); line-height: 1; }
+  .sec .rule { flex: 1; height: 1px; background: var(--line); transform: translateY(-8px); }
+  h1 {
+    font-family: Newsreader, "Source Serif 4", Georgia, serif;
+    font-size: 44px; line-height: 1.15; font-weight: 600;
+    letter-spacing: -0.02em; margin: 0 0 24px; max-width: 23em;
+  }
+
+  /* layout */
+  .body { flex: 1; display: flex; flex-direction: column; gap: 18px; min-height: 0; }
+  .row { display: flex; gap: 18px; }
+  .row.grow { flex: 1; min-height: 0; }
+  .col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .card { background: #fff; border: 1px solid var(--line); padding: 22px 24px; display: flex; flex-direction: column; }
+  .soft { background: var(--soft); border: 1px solid var(--line); padding: 22px 24px; display: flex; flex-direction: column; }
+  .accent { background: var(--red-soft); border: 1px solid var(--red-line); padding: 22px 24px; display: flex; flex-direction: column; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; }
+  .label.red { color: var(--red); }
+  .center { justify-content: center; }
+  .spread { justify-content: space-between; }
+
+  /* text */
+  p { margin: 0; }
+  .lede { font-size: 23px; font-weight: 650; line-height: 1.25; }
+  .t { font-size: 17px; line-height: 1.5; }
+  .sub { font-size: 15px; line-height: 1.5; color: var(--muted); }
+  .big { font-size: 52px; font-weight: 750; line-height: 1; letter-spacing: -0.025em; }
+  .big-sub { font-size: 16px; color: var(--muted); margin-top: 10px; line-height: 1.4; }
+  .band { background: var(--soft); border: 1px solid var(--line); padding: 22px 26px; }
+  .band.red { background: var(--red-soft); border-color: var(--red-line); }
+  .band .q { font-family: Newsreader, Georgia, serif; font-size: 28px; line-height: 1.25; }
+  .band.red .q { color: var(--red); }
+  .band .foot { font-size: 16px; color: var(--muted); margin-top: 10px; line-height: 1.45; }
+
+  /* two-principle slide */
+  .stmt { font-size: 33px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; }
+  /* takes the leftover height so the card fills the slide instead of pooling */
+  .plist { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+  .plist b { display: block; font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+  .plist span { display: block; font-size: 16px; line-height: 1.45; color: var(--muted); }
+
+  /* ===== GANTT / SWIMLANE ===== */
+  .gantt { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .g-head { display: grid; grid-template-columns: 132px 1fr; gap: 18px; margin-bottom: 10px; }
+  .g-cols { display: grid; }
+  .g-cols span {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+    color: var(--faint); padding: 0 0 8px 14px; border-left: 2px solid var(--line);
+  }
+  .g-cols span.on { color: var(--red); border-left-color: var(--red-line); }
+  .g-row { display: grid; grid-template-columns: 132px 1fr; gap: 18px; flex: 1; min-height: 0; }
+  .g-lane { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; font-size: 17px; font-weight: 700; line-height: 1.2; }
+  .g-lane small { font-size: 11px; font-weight: 600; color: var(--faint); margin-top: 5px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .track { position: relative; border-top: 1px solid var(--line); }
+  .g-row:last-child .track { border-bottom: 1px solid var(--line); }
+  .track i.gl { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  .bar {
+    position: absolute; top: 9px; bottom: 9px;
+    background: #fff; border: 1px solid var(--line);
+    display: flex; align-items: center; padding: 0 15px;
+    font-size: 15px; font-weight: 600; line-height: 1.25;
+  }
+  .bar.red { background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+  .bar.solid { background: var(--red); border-color: var(--red); color: #fff; }
+  .bar.ghost { background: var(--soft); color: var(--muted); font-weight: 500; }
+  .bar.empty { background: transparent; border: 1px dashed var(--line); color: var(--faint); font-weight: 500; font-size: 14px; justify-content: center; }
+
+  /* ===== METRIC FLOW ===== */
+  .mflow { display: flex; align-items: center; flex: 1; }
+  .mstep {
+    flex: 1; align-self: stretch; background: #fff; border: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 12px 10px; font-size: 17px; font-weight: 650; line-height: 1.25;
+  }
+  .mstep.end { background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+  .marrow { flex: 0 0 128px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .marrow .a { color: var(--faint); font-size: 16px; line-height: 1; }
+  .marrow .m {
+    font-size: 12.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+    color: var(--red); text-align: center; line-height: 1.3;
+  }
+
+  /* ===== SPLIT BAR ===== */
+  .split { display: flex; height: 62px; }
+  .split-seg {
+    display: flex; align-items: center; padding: 0 18px;
+    font-size: 17px; font-weight: 650; border: 1px solid var(--line); background: #fff;
+  }
+  .split-seg.red { background: var(--red); border-color: var(--red); color: #fff; justify-content: center; padding: 0 8px; }
+  .axis { display: flex; justify-content: space-between; font-size: 13px; color: var(--faint); margin-top: 8px; }
+
+  /* flow */
+  .flow { display: flex; align-items: stretch; }
+  .flow.grow { flex: 1; }
+  .flow-step {
+    flex: 1; background: #fff; border: 1px solid var(--line);
+    padding: 16px 13px; text-align: center;
+    font-size: 18px; font-weight: 650; line-height: 1.25;
+    display: flex; flex-direction: column; justify-content: center; gap: 8px;
+  }
+  .flow-step em { font-style: normal; font-weight: 500; color: var(--muted); font-size: 14px; line-height: 1.35; }
+  .flow-step.hi { background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+  .flow-step.hi em { color: #A2374B; }
+  .flow-arrow { width: 26px; flex: 0 0 26px; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 17px; }
+
+  /* funnel */
+  .funnel { display: flex; flex-direction: column; align-items: center; gap: 9px; flex: 1; justify-content: space-between; }
+  .funnel-row {
+    background: #fff; border: 1px solid var(--line); text-align: center;
+    padding: 13px 12px; font-size: 17px; font-weight: 600; line-height: 1.25; width: 100%;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .funnel-row small { font-weight: 500; color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .funnel-row.end { background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+  .funnel-row.end small { color: #A2374B; }
+
+  /* table */
+  table.t2 { width: 100%; border-collapse: collapse; font-size: 18px; height: 100%; }
+  table.t2 th, table.t2 td { border-bottom: 1px solid var(--line); padding: 12px 10px; text-align: center; }
+  table.t2 th { font-size: 14px; font-weight: 700; color: var(--muted); }
+  table.t2 th:first-child, table.t2 td:first-child { text-align: left; color: var(--muted); font-weight: 500; font-size: 16px; }
+  table.t2 tr:last-child td { border-bottom: 0; }
+  table.t2 .hi { background: var(--red-soft); color: var(--red); font-weight: 700; }
+  table.t2 th.hi { color: var(--red); font-size: 15px; }
+  .tbl { flex: 1; display: flex; }
+
+  /* misc */
+  .pill { display: inline-block; font-size: 16px; font-weight: 600; padding: 9px 16px; background: var(--chip); }
+  .pill.red { background: var(--red-soft); color: var(--red); }
+  .chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1px solid var(--line); background: var(--soft); font-size: 14px; padding: 7px 12px; }
+  .zip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; flex: 0 0 auto; height: 182px; }
+  .why { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+  .why b { display: block; font-size: 16px; font-weight: 700; margin-bottom: 3px; }
+  .why span { display: block; font-size: 14.5px; line-height: 1.42; color: var(--muted); }
+  .zip b {
+    background: var(--soft); border: 1px solid var(--line);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 650; gap: 3px;
+  }
+  .zip b i { font-style: normal; font-weight: 500; font-size: 13px; color: var(--muted); }
+  .zip b.on { background: var(--red-soft); border-color: var(--red-line); color: var(--red); }
+  .zip b.on i { color: #A2374B; }
+  .phone { flex: 1; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+  .phone-top { background: var(--ink); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 13px; display: flex; justify-content: space-between; }
+  .phone-body { padding: 16px; display: flex; flex-direction: column; gap: 9px; flex: 1; }
+  .phone-body .chip-row { margin-top: auto; }
+  .phone h3 { margin: 0; font-size: 18px; font-weight: 650; line-height: 1.25; }
+  .phone p { font-size: 14px; color: var(--muted); line-height: 1.4; }
+  .cta { background: var(--red); color: #fff; font-size: 14px; font-weight: 600; text-align: center; padding: 11px; margin-top: auto; }
+  ul.tight { margin: 0; padding-left: 20px; }
+  ul.tight li { margin: 0 0 12px; font-size: 17px; line-height: 1.4; }
+  ul.tight li:last-child { margin-bottom: 0; }
+
+  /* two-sided gap diagram */
+  .gap-wrap { display: grid; grid-template-columns: 1fr 210px 1fr; gap: 0; flex: 1; align-items: stretch; }
+  .gap-side { border: 1px solid var(--line); background: #fff; padding: 22px 24px; display: flex; flex-direction: column; justify-content: space-between; }
+  .gap-mid {
+    background: var(--red-soft); border: 1px solid var(--red-line); border-left: 0; border-right: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 16px;
+  }
+  .gap-mid .arrows { font-size: 26px; color: var(--red); letter-spacing: 4px; }
+  .gap-mid .txt { font-size: 19px; font-weight: 700; color: var(--red); text-align: center; line-height: 1.25; }
+
+  /* chrome */
+  /* Live prototype slide: full bleed, no chrome competing with the device. */
+  .slide.demo { padding: 0; overflow: hidden; background: #101114; }
+  .demo-frame {
+    position: relative; z-index: 1;
+    /* flex: none, or the column layout shrinks the frame and the prototype
+       renders against a shorter viewport than it was measured for. */
+    flex: 0 0 auto;
+    width: 1600px; height: 900px; border: 0; display: block;
+    /* Zoom is anchored on the phone itself, which sits at (1022,450) inside the
+       prototype's own 1600x900 stage — not on the middle of the slide. Anchor it
+       centrally and turning the zoom up shoves the device off to the right. */
+    --dz: 1;
+    --s: calc(0.9 * var(--dz));
+    transform-origin: 0 0;
+    transform: translate(calc(919.8px - 1022px * var(--s)), calc(405px - 450px * var(--s))) scale(var(--s));
+    transition: transform .18s ease;
+  }
+  .demo-zoom {
+    position: absolute; right: 20px; bottom: 16px; z-index: 3;
+    background: rgba(255,255,255,0.12); color: #fff;
+    font-size: 14px; font-weight: 700; letter-spacing: 0.04em;
+    padding: 5px 12px; border-radius: 999px;
+    opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
+  }
+  .demo-zoom.show { opacity: 1; }
+  /* Once you click the phone, the keyboard belongs to the prototype. The deck
+     forwards the arrow keys back out, but that handshake depends on the iframe's
+     origin and quietly stops working in the single-file build. Anyone who cannot
+     leave this slide is stuck on it, so the way forward is also on screen. */
+  .demo-nav {
+    position: absolute; left: 30px; bottom: 26px; z-index: 4;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .demo-nav button {
+    width: 46px; height: 37px; border-radius: 9px; cursor: pointer;
+    background: rgba(255,255,255,0.09); color: #E8E8EA;
+    border: 1px solid rgba(255,255,255,0.16);
+    font: 600 17px/1 Inter, sans-serif; letter-spacing: 0;
+    transition: background 0.15s ease;
+  }
+  .demo-nav button:hover { background: rgba(255,255,255,0.2); }
+  .demo-nav span { color: #62666C; font-size: 13px; letter-spacing: 0.02em; }
+  .demo-missing {
+    position: absolute; inset: 0; z-index: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    color: #8A8F96; font-size: 19px; text-align: center;
+  }
+  .demo-missing b { color: #fff; }
+  .demo-missing code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 17px; color: #fff; }
+  body.on-demo .footer, body.on-demo .bar-p { display: none; }
+
+  .footer { position: absolute; left: 60px; right: 60px; bottom: 22px; display: flex; justify-content: space-between; font-size: 13px; color: var(--faint); }
+  .bar-p { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--line); }
+  .bar-p > i { display: block; height: 100%; background: var(--red); width: 0; }
+  .hud {
+    position: fixed; left: 0; right: 0; bottom: 0; height: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 16px; font-size: 11px; color: #A8A8A8; background: #141414; z-index: 5;
+  }
+  .hud kbd { font-family: inherit; border: 1px solid #3A3A3A; padding: 1px 5px; border-radius: 3px; color: #D0D0D0; }
+  .notes {
+    display: none; position: fixed; right: 16px; bottom: 44px; width: 470px;
+    max-height: 62vh; overflow: auto; background: #111; color: #EDEDED;
+    padding: 18px 20px; border: 1px solid #333; z-index: 6; font-size: 16px; line-height: 1.45;
+  }
+  .notes.on { display: block; }
+  .notes .time { color: #E4657C; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .notes .cue {
+    font-size: 13px; line-height: 1.6; color: #C9A3AC;
+    border-left: 2px solid #6E2233; padding-left: 11px; margin-bottom: 14px;
+  }
+  .notes .cue b { color: #F090A2; font-weight: 700; }
+  .notes .grp { margin-bottom: 13px; }
+  .notes .grp p { margin: 0 0 4px; }
+  .notes em { font-style: normal; color: #FF8FA3; font-weight: 600; }
+  .notes .look { font-style: normal; color: #FF6B85; font-size: 12px; margin-right: 5px; }
+  .notes .do {
+    display: inline-block; background: #2C2C2C; color: #9C9C9C; border-radius: 4px;
+    padding: 0 6px; margin-right: 7px; font-size: 12px; font-weight: 700;
+  }
+
+  @media print {
+    @page { size: landscape; margin: 0; }
+    html, body { background: #fff; height: auto; overflow: visible; }
+    .hud, .notes, .bar-p { display: none !important; }
+    .frame { display: block; height: auto; }
+    .viewport, .stage-wrap, .stage { transform: none !important; width: 100%; height: auto; overflow: visible; }
+    .slide { display: flex !important; position: relative; page-break-after: always; height: 190mm; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="viewport" id="viewport">
+  <div class="stage-wrap" id="wrap">
+    <div class="stage" id="stage">
+
+      <!-- 1 COVER -->
+      <section class="slide active" data-time="0:35" data-notes="今天我只回答一个问题：NewsBreak 能不能把本地流量变成一单真正完成的交易。我的答案是——在 Columbus，从 Plumbing 开始。">
+        <div class="sec"><span class="name">NewsBreak Local AI Commerce</span><span class="rule"></span></div>
+        <div class="body center">
+          <p class="pill red" style="width:fit-content; margin-bottom:24px;">Home Services</p>
+          <h1 style="font-size:70px; max-width:14em; margin-bottom:26px;">Start in Columbus.<br>Start with Plumbing.</h1>
+          <p style="font-size:26px; color:var(--muted); max-width:24em; line-height:1.35;">An AI Home Repair Assistant that turns local context into a completed job.</p>
+        </div>
+      </section>
+
+      <!-- 2 RECOMMENDATION -->
+      <section class="slide" data-time="1:45" data-notes="先给结论，再讲那条线——它是整个 deck 的骨架。下面三张卡是题目要的 key hypotheses：需求、供给、单位经济，每条都写了什么情况下算被证伪。这三条会在第 13 页以指标的形式回来一次，讲的时候预告一下。">
+        <div class="sec"><span class="num">01</span><span class="name">Recommendation</span><span class="rule"></span></div>
+        <h1>One category. A few ZIP codes. One complete transaction loop.</h1>
+        <div class="body">
+          <div class="flow grow">
+            <div class="flow-step hi">Local feed<em>A freeze alert, a local story</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">AI assistant<em>Understands the problem</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Qualified job<em>Structured, not a lead</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Local plumber<em>Matched and available</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step hi">Completed job<em>The only real proof</em></div>
+          </div>
+          <div class="row" style="flex:0.62;">
+            <div class="card col" style="padding:15px 19px; justify-content:space-between;">
+              <p class="label red">Bet 1 · Demand</p>
+              <p class="lede" style="font-size:19px;">She acts on a story, not a search.</p>
+              <p class="sub">Dead if owned demand stays low.</p>
+            </div>
+            <div class="card col" style="padding:15px 19px; justify-content:space-between;">
+              <p class="label red">Bet 2 · Supply</p>
+              <p class="lede" style="font-size:19px;">Plumbers answer a qualified job, not a lead.</p>
+              <p class="sub">Dead if response time and accept rate stay flat.</p>
+            </div>
+            <div class="card col" style="padding:15px 19px; justify-content:space-between;">
+              <p class="label red">Bet 3 · Economics</p>
+              <p class="lede" style="font-size:19px;">One finished job can pay for itself.</p>
+              <p class="sub">Dead if contribution margin never turns.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3 WHY PLUMBING -->
+      <section class="slide" data-time="1:15" data-notes="为什么是 Plumbing 而不是 HVAC。三个理由：漏水必须今天修，意图最强；用户只知道症状不知道该叫什么工种，这正好是 AI 的价值；而且交易周期短，我们 90 天就能看到结果，换一台 HVAC 可能要等一个季度。">
+        <div class="sec"><span class="num">02</span><span class="name">Why Plumbing</span><span class="rule"></span></div>
+        <h1>The most urgent, most confusing, fastest-closing category.</h1>
+        <div class="body">
+          <div class="row grow">
+            <div class="card col" style="flex:1.3; padding:20px 24px;">
+              <p class="label">Category scorecard · 1–5</p>
+              <div class="tbl">
+                <table class="t2">
+                  <thead><tr><th></th><th class="hi">Plumbing</th><th>HVAC</th><th>Electrical</th><th>Handyman</th></tr></thead>
+                  <tbody>
+                    <tr><td>Urgency</td><td class="hi">5</td><td>5</td><td>4</td><td>2</td></tr>
+                    <tr><td>Year-round demand</td><td class="hi">5</td><td>3</td><td>4</td><td>4</td></tr>
+                    <tr><td>AI triage value</td><td class="hi">5</td><td>4</td><td>3</td><td>3</td></tr>
+                    <tr><td>Speed to close</td><td class="hi">4</td><td>3</td><td>2</td><td>4</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="col" style="flex:0.85; gap:16px;">
+              <div class="soft" style="flex:1; justify-content:center;">
+                <p class="lede" style="font-size:21px;">A leak gets fixed today</p>
+                <p class="sub" style="margin-top:6px;">Highest urgency of any home category.</p>
+              </div>
+              <div class="soft" style="flex:1; justify-content:center;">
+                <p class="lede" style="font-size:21px;">People know the symptom, not the service</p>
+                <p class="sub" style="margin-top:6px;">Exactly where AI earns its place.</p>
+              </div>
+              <div class="soft" style="flex:1; justify-content:center;">
+                <p class="lede" style="font-size:21px;">We can read results in 90 days</p>
+                <p class="sub" style="margin-top:6px;">An HVAC replacement takes a season.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4 MARKET -->
+      <section class="slide" data-time="0:55" data-notes="Columbus 不缺需求，也不缺 plumber。17 万自有住房家庭，而且他们早就在网上找服务了。供给也在，只是碎的——问题从来不是有没有 plumber，而是这个 plumber 现在有没有空、跑不跑这个 ZIP。两边都在，断的是中间那一层。">
+        <div class="sec"><span class="num">03</span><span class="name">The Market</span><span class="rule"></span></div>
+        <h1>Both sides already exist. What is broken is the middle.</h1>
+        <div class="body">
+          <div class="gap-wrap">
+            <div class="gap-side">
+              <p class="label">Demand side</p>
+              <div>
+                <p class="big">172K</p>
+                <p class="big-sub">owner-occupied households in Columbus — 390.5K total, 44.1% owned</p>
+              </div>
+              <div>
+                <p class="t" style="margin-bottom:10px;">Already searching online today:</p>
+                <div class="chip-row"><span class="chip">Google</span><span class="chip">Yelp</span><span class="chip">Angi</span><span class="chip">Thumbtack</span></div>
+              </div>
+              <p class="sub">U.S. Census QuickFacts, ACS 2020–2024</p>
+            </div>
+            <div class="gap-mid">
+              <p class="arrows">→→→</p>
+              <p class="txt">The gap<br>is matching</p>
+              <p class="arrows">←←←</p>
+            </div>
+            <div class="gap-side">
+              <p class="label">Supply side</p>
+              <div>
+                <p class="lede">Hundreds of local plumbers</p>
+                <p class="sub" style="margin-top:10px;">There is no shortage of licensed plumbers in Columbus.</p>
+              </div>
+              <div>
+                <p class="t" style="margin-bottom:10px;">But nobody can answer, in real time:</p>
+                <div class="chip-row"><span class="chip">Free right now?</span><span class="chip">Covers this ZIP?</span><span class="chip">Wants this job?</span></div>
+              </div>
+              <p class="sub">Fragmented availability, not fragmented supply</p>
+            </div>
+          </div>
+          <div class="band"><p class="q">Demand exists. Supply exists. Nobody is connecting them well.</p></div>
+        </div>
+      </section>
+
+      <!-- 5 RIGHT TO WIN -->
+      <section class="slide" data-time="1:30" data-notes="这是整个 deck 最重要的一页。看这条时间轴——从水管开始漏，到活干完。所有竞品都在中间才介入，因为他们要等用户先意识到问题、再主动搜索。NewsBreak 的位置在最左边，用户还在读本地天气的时候。这个时间差就是我们唯一别人拿不走的东西。">
+        <div class="sec"><span class="num">04</span><span class="name">Right to Win</span><span class="rule"></span></div>
+        <h1>Everyone else waits for the search. We are already on the screen.</h1>
+        <div class="body">
+          <div class="gantt">
+            <div class="g-head">
+              <div></div>
+              <div class="g-cols" style="grid-template-columns:repeat(4,1fr);">
+                <span class="on">Hour 0 · problem starts</span>
+                <span>Hours later · user reacts</span>
+                <span>Search &amp; compare</span>
+                <span>Job completed</span>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane" style="color:var(--red);">NewsBreak<small>Contextual</small></div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar solid" style="left:0%; width:24%;">Freeze alert in the feed</div>
+                <div class="bar red" style="left:25.5%; width:23.5%;">“Pipes frozen?” → AI builds the job</div>
+                <div class="bar red" style="left:50.5%; width:24%;">Nearby plumber matched</div>
+                <div class="bar red" style="left:75.5%; width:24.5%;">Job done</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Google / Angi<small>Search-led</small></div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar empty" style="left:0%; width:24%;">Not in the picture yet</div>
+                <div class="bar" style="left:25.5%; width:23.5%;">User realizes they need a plumber</div>
+                <div class="bar" style="left:50.5%; width:24%;">Searches, compares, calls around</div>
+                <div class="bar" style="left:75.5%; width:24.5%;">Maybe a job</div>
+              </div>
+            </div>
+          </div>
+          <div class="band red"><p class="q">We can reach the problem hours before the search — with an audience we already own.</p></div>
+        </div>
+      </section>
+
+      <!-- 6 REALITY CHECK -->
+      <section class="slide" data-time="1:05" data-notes="但我要诚实说一件事：AI intake 本身已经不是差异化了。Thumbtack、Angi、Yelp 都做了，这些能力甚至已经出现在 ChatGPT 和 Gemini 里。所以我们必须做，但它不是护城河。真正稀缺的是刚才那一页的时间差。">
+        <div class="sec"><span class="num">05</span><span class="name">Reality Check</span><span class="rule"></span></div>
+        <h1>The AI part is not the moat. Everyone already has it.</h1>
+        <div class="body">
+          <div class="row grow">
+            <div class="card col" style="flex:1.25; padding:20px 24px;">
+              <p class="label">Who already ships this</p>
+              <div class="tbl">
+                <table class="t2">
+                  <thead><tr><th></th><th>Thumbtack</th><th>Angi</th><th>Yelp</th><th class="hi">NewsBreak</th></tr></thead>
+                  <tbody>
+                    <tr><td>Natural-language intake</td><td>Yes</td><td>Yes</td><td>Yes</td><td class="hi">Must have</td></tr>
+                    <tr><td>Photo and voice</td><td>Yes</td><td>Partial</td><td>Partial</td><td class="hi">Must have</td></tr>
+                    <tr><td>Structured job summary</td><td>Yes</td><td>Yes</td><td>Partial</td><td class="hi">Must have</td></tr>
+                    <tr><td>Provider matching</td><td>Yes</td><td>Yes</td><td>Yes</td><td class="hi">Must have</td></tr>
+                    <tr><td>Local contextual trigger</td><td>Weak</td><td>Weak</td><td>Medium</td><td class="hi">Our opening</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="accent col center" style="flex:0.7;">
+              <p style="font-family:Newsreader,Georgia,serif; font-size:36px; line-height:1.2; color:var(--red);">AI is the baseline.<br>Local intent is the wedge.</p>
+              <p class="sub" style="margin-top:20px;">These flows are already showing up inside ChatGPT and Gemini too. We build them because we have to — not because they win.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7 PRODUCT -->
+      <section class="slide" data-time="1:20" data-notes="产品本身很简单，不是让人跟 AI 聊天，是尽快把一个模糊的问题变成一单 plumber 愿意接的活。只问两三个问题就够了。最后一步是报价对比——用户在 Home Services 最大的焦虑就是不知道 220 和 390 到底差在哪，AI 负责解释，但选择权在用户。">
+        <div class="sec"><span class="num">06</span><span class="name">The Product</span><span class="rule"></span></div>
+        <h1>From “something is leaking” to a job a plumber will actually take.</h1>
+        <div class="body">
+          <div class="flow grow">
+            <div class="flow-step hi">Understand<em>“My kitchen sink is leaking.”<br>Text, photo, or voice</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Clarify<em>Two or three questions.<br>Not a conversation.</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Structure<em>Issue, urgency, time window, photos — user confirms</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step">Match<em>Nearby, available, right service, fast to respond</em></div>
+            <div class="flow-arrow">→</div>
+            <div class="flow-step hi">Compare<em>Quotes explained, not silently ranked</em></div>
+          </div>
+          <div class="row" style="flex:0.7;">
+            <div class="card col center">
+              <p class="label">What the plumber receives</p>
+              <p class="lede">Kitchen sink leak · today 3–6 PM · 2.1 miles · 2 photos</p>
+              <p class="sub" style="margin-top:10px;">“Leaks when the sink runs. Likely a drain or connection issue.”</p>
+            </div>
+            <div class="card col center">
+              <p class="label">Why the quotes differ</p>
+              <p class="lede">$220 · $310 · $390</p>
+              <p class="sub" style="margin-top:10px;">One includes the service fee, one includes parts, one bills diagnostics separately. The AI explains. The user decides.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8 UX -->
+      <section class="slide" data-time="0:50" data-notes="这页快过——下一页直接演示。体验上有一个硬要求：它必须还是 NewsBreak，不能点一下就跳进另一个 AI app。入口在 feed、天气、文章里，能点就不让用户打字。Provider 那一端正好相反，要像工具——一屏看懂这单值不值得接。">
+        <div class="sec"><span class="num">07</span><span class="name">Experience</span><span class="rule"></span></div>
+        <h1>It has to still feel like NewsBreak.</h1>
+        <div class="body">
+          <div class="row grow">
+            <div class="card col">
+              <div>
+                <p class="label">Consumer</p>
+                <p class="stmt">The way in is a story she was already reading.</p>
+              </div>
+              <div class="plist">
+                <p><b>Feed card, freeze alert, inside the article</b><span>Three surfaces she opens anyway. Nothing new on the tab bar.</span></p>
+                <p><b>Tap, don’t type</b><span>Three questions, all chips. Nobody writes a paragraph at 10 PM.</span></p>
+                <p><b>Her address stays hidden</b><span>Shared only once she picks a plumber.</span></p>
+              </div>
+            </div>
+            <div class="accent col">
+              <div>
+                <p class="label red">Provider</p>
+                <p class="stmt">A work tool that answers one question: is this worth my time?</p>
+              </div>
+              <div class="plist">
+                <p><b>A job, not a lead</b><span>Her own answers, already structured, before he picks up the phone.</span></p>
+                <p><b>Priced with local comps</b><span>What the last 14 leaks in this ZIP actually closed at.</span></p>
+                <p><b>Paid on completion</b><span>No listing fee, no charge to quote. A quote that goes nowhere is free.</span></p>
+              </div>
+            </div>
+          </div>
+          <div class="band red"><p class="q">Next slide is that product, running — both sides, one real job.</p></div>
+        </div>
+      </section>
+
+      <!-- 9 LIVE DEMO -->
+      <section class="slide demo" data-time="2:45" data-notes="这一页是活的原型，不是截图。先走需求侧：降温预警 → AI 追问三个问题 → 生成结构化的活。然后按 2 切到水管工，他看到的是一单已经问清楚的活，报 220 发出去。按 1 切回来，报价当场出现在对比页里。问到供给怎么来，按 3 看水管工两分钟注册。方向键照常翻页，R 重置。屏幕上看不清就按 = 放大手机、- 缩小、0 还原；讲稿浮窗挡住手机：按 ] 换窄尺寸，或者直接拖它顶部那条 Chrome 标题栏（网页内容区拖不动，只有那条能拖）。">
+        <iframe id="demoFrame" class="demo-frame" title="Live prototype" src="about:blank"></iframe>
+        <div class="demo-zoom" id="demoZoom">100%</div>
+        <div class="demo-nav">
+          <button type="button" id="demoPrev" aria-label="Previous slide">&#8592;</button>
+          <button type="button" id="demoNext" aria-label="Next slide">&#8594;</button>
+          <span>Slides</span>
+        </div>
+        <div class="demo-missing">
+          <p><b>Prototype not built yet.</b></p>
+          <p>Run <code>./demo.sh</code> once in <code>newsbreak-takehome/</code>, then reload this deck.</p>
+        </div>
+      </section>
+
+      <!-- 10 WHERE WE LAUNCH -->
+      <section class="slide" data-time="1:35" data-notes="为什么是这几个 ZIP：第一条最硬——读新闻的人必须就是掏钱的人。43201 是 OSU 校园区，83% 是租客，他打电话给房东不是给水管工；那是另一个产品，走物业那条线，属于第二批。注意措辞是「付款方和读者分离」，不是「避开低收入区」。第二条是老房存量，冻裂集中在 1930-50 年代的施工方式。第三条是运营命脉——这五个 ZIP 连成一条带，一个水管工 6 英里全覆盖，撒开做密度就没了。右边：公开数据里没有 NewsBreak 在 Columbus 的 MAU，所以我不会编一个「拿下 5%」。我只认一个份额：完成订单份额。">
+        <div class="sec"><span class="num">08</span><span class="name">Where We Launch</span><span class="rule"></span></div>
+        <h1>A market small enough to measure honestly.</h1>
+        <div class="body">
+          <div class="row grow">
+            <div class="col">
+              <p class="label">Three to five adjacent ZIPs</p>
+              <div class="zip">
+                <b>43202</b><b class="on">43214<i>Clintonville</i></b><b class="on">43220<i>Northwest</i></b>
+                <b>43201</b><b class="on">43212<i>Grandview</i></b><b class="on">43221<i>Upper Arlington</i></b>
+                <b>43211</b><b>43224</b><b class="on">43235<i>Linworth</i></b>
+              </div>
+              <div class="why">
+                <p><b>The reader has to be the one who pays</b><span>43221 is 79% owner-occupied. 43201 is 17% — that reader calls a landlord, not a plumber.</span></p>
+                <p><b>The pipes have to actually fail</b><span>Median home built 1952 in Clintonville, 1959 in Upper Arlington. Uninsulated lines on exterior walls.</span></p>
+                <p><b>One plumber has to cover all of them</b><span>A contiguous band northwest of downtown, six miles end to end. Scatter the pilot and density never happens.</span></p>
+              </div>
+              <p class="sub" style="margin-top:12px;">Tenure and housing age: ACS 2020–2024. Renter-heavy ZIPs are wave two, via property managers.</p>
+            </div>
+            <div class="col">
+              <p class="label">The only share I will report</p>
+              <div class="funnel">
+                <div class="funnel-row" style="width:100%;">All plumbing demand in those ZIPs</div>
+                <div class="funnel-row" style="width:82%;">Reachable through NewsBreak</div>
+                <div class="funnel-row" style="width:64%;">Qualified requests<small>Phase 1</small></div>
+                <div class="funnel-row" style="width:48%;">Matched jobs</div>
+                <div class="funnel-row end" style="width:34%;">Completed jobs<small>Phase 2 — the real number</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="band"><p class="q">There is no public Columbus MAU, so I will not invent a market share.</p></div>
+        </div>
+      </section>
+
+      <!-- 11 GTM GANTT -->
+      <section class="slide" data-time="1:45" data-notes="这一页请看这四条泳道。关键在第一条和第二条的错位——供给从第 0 天就开始，需求要到第 31 天才进来。杀死一个 marketplace 最快的方式，就是在供给还接不住的时候把需求放进来。产品那条线也是分段的：先上 assistant，再 A/B 测 AI intake，最后才调排序。钱这条线放到最后 30 天才碰。">
+        <div class="sec"><span class="num">09</span><span class="name">GTM</span><span class="rule"></span></div>
+        <h1>Ninety days: supply leads, demand follows on a leash.</h1>
+        <div class="body">
+          <div class="gantt">
+            <div class="g-head">
+              <div></div>
+              <div class="g-cols" style="grid-template-columns:repeat(3,1fr);">
+                <span>Days 0–30</span><span>Days 31–60</span><span>Days 61–90</span>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane" style="color:var(--red);">Supply<small>Starts first</small></div>
+              <div class="track">
+                <i class="gl" style="left:33.33%"></i><i class="gl" style="left:66.66%"></i>
+                <div class="bar solid" style="left:0%; width:52%;">Recruit 20–30 plumbers · lock ZIPs and service windows</div>
+                <div class="bar red" style="left:53%; width:47%;">Keep the responsive ones · fill coverage gaps</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Demand<small>Held back</small></div>
+              <div class="track">
+                <i class="gl" style="left:33.33%"></i><i class="gl" style="left:66.66%"></i>
+                <div class="bar ghost" style="left:0%; width:32%;">Closed — no consumer demand yet, on purpose</div>
+                <div class="bar" style="left:33.5%; width:32.5%;">Open to 5–10% · test weather, feed, article, push</div>
+                <div class="bar" style="left:67%; width:33%;">Scale only the entries that converted</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Product</div>
+              <div class="track">
+                <i class="gl" style="left:33.33%"></i><i class="gl" style="left:66.66%"></i>
+                <div class="bar" style="left:0%; width:32%;">Assistant MVP · manual ops behind it</div>
+                <div class="bar" style="left:33.5%; width:32.5%;">A/B: AI intake vs plain form</div>
+                <div class="bar" style="left:67%; width:33%;">Tune ranking and the quote flow</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Money</div>
+              <div class="track">
+                <i class="gl" style="left:33.33%"></i><i class="gl" style="left:66.66%"></i>
+                <div class="bar ghost" style="left:0%; width:66%;">Free pilot jobs — buying trust, not revenue</div>
+                <div class="bar red" style="left:67%; width:33%;">Test willingness to pay</div>
+              </div>
+            </div>
+          </div>
+          <div class="band">
+            <p class="q" style="font-size:23px;">At day 90 we follow the bottleneck, not the roadmap.</p>
+            <p class="foot">Demand strong but supply weak → recruit. Supply strong but demand weak → fix distribution. Both healthy → add ZIPs, then the next category.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 12 ECONOMICS -->
+      <section class="slide" data-time="1:20" data-notes="早期我不会急着变现，先证明我们能带来真实完成的订单。这张图是一单 350 块的分账，我们拿 12%，也就是 42 块。12% 只是起始假设，不是定价建议。最重要的是下面这句：plumber 最终比较的不是每条 lead 多少钱，而是获得一个真实客户花了多少钱。">
+        <div class="sec"><span class="num">10</span><span class="name">Economics</span><span class="rule"></span></div>
+        <h1>Get paid when the job is done — not when the lead is sent.</h1>
+        <div class="body">
+          <div class="row" style="flex:0.75;">
+            <div class="soft col center"><p class="label">Phase 1 · Pilot</p><p class="t">Free or near-free qualified jobs. We are buying trust and liquidity, not revenue.</p></div>
+            <div class="soft col center"><p class="label">Phase 2 · Transaction</p><p class="t">Once we own booking, payment, and completion, we take a share of jobs that actually finish.</p></div>
+          </div>
+          <div class="card" style="flex:1; justify-content:center;">
+            <p class="label">One completed job · illustrative</p>
+            <div class="split">
+              <div class="split-seg" style="width:88%;">Plumber keeps ~$308</div>
+              <div class="split-seg red" style="width:12%;">$42</div>
+            </div>
+            <div class="axis">
+              <span>Homeowner pays $350</span>
+              <span>NewsBreak take rate — 12% launch hypothesis, not a price</span>
+            </div>
+            <p class="sub" style="margin-top:16px;">Variable costs come out of that $42: payments, support, refund reserve, incentives, AI. Contribution margin gets measured in the pilot — never assumed.</p>
+          </div>
+          <div class="band red"><p class="q">Plumbers should judge us on cost per completed job — not cost per lead.</p></div>
+        </div>
+      </section>
+
+      <!-- 13 SUCCESS -->
+      <section class="slide" data-time="1:25" data-notes="开口先回指第 2 页那三个赌注——现在每条都挂上了数字，首尾闭环。我们要验证的不是用户喜不喜欢 AI，而是这个 marketplace 成不成立。看这条链路，每一个箭头上挂一个指标——这就是我要盯的全部。北极星是最右边的完成订单，不是聊天量。还有一个只有 NewsBreak 才有的指标：有多少完成订单来自我们自己的 feed 和天气，这个数字才真正证明分发优势是不是真的。">
+        <div class="sec"><span class="num">11</span><span class="name">Success</span><span class="rule"></span></div>
+        <h1>The MVP does not test whether people like AI. It tests whether the marketplace exists.</h1>
+        <div class="body">
+          <div class="mflow">
+            <div class="mstep">Qualified request</div>
+            <div class="marrow"><span class="m">Match rate</span><span class="a">──────▶</span></div>
+            <div class="mstep">Matched job</div>
+            <div class="marrow"><span class="m">Time to first response</span><span class="a">──────▶</span></div>
+            <div class="mstep">Plumber responds</div>
+            <div class="marrow"><span class="m">Booking conversion</span><span class="a">──────▶</span></div>
+            <div class="mstep end">Completed job<br><span style="font-size:13px; font-weight:600;">North star</span></div>
+            <div class="marrow"><span class="m">Repeat rate ·<br>Contribution margin</span><span class="a">──────▶</span></div>
+            <div class="mstep">Sustainable<br>economics</div>
+          </div>
+          <div class="row" style="flex:0.62;">
+            <div class="card col center" style="flex:1.15;">
+              <p class="label">The three bets from slide one — now with numbers</p>
+              <p class="t"><b>1.</b> Can our own surfaces create real plumbing demand?<br><b>2.</b> Will plumbers keep answering the jobs we send?<br><b>3.</b> Can a completed job pay for itself?</p>
+            </div>
+            <div class="accent col center">
+              <p class="t"><b style="color:var(--red);">Owned demand %</b> — how many completed jobs came from NewsBreak’s own surfaces. This is the single number that proves the whole thesis.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 14 ROADMAP GANTT -->
+      <section class="slide" data-time="1:05" data-notes="长期路线按三条泳道走：消费者、供给方、平台。前三个月只做最左边那一列，后台可以人工兜底。注意最右边——MCP 在十八个月之后才出现，只有当 provider 的系统足够碎、外部 AI 分发真的有量的时候它才有价值。它绝对不是 MVP。">
+        <div class="sec"><span class="num">12</span><span class="name">Roadmap</span><span class="rule"></span></div>
+        <h1>Each phase only starts once the last one is proven.</h1>
+        <div class="body">
+          <div class="gantt">
+            <div class="g-head">
+              <div></div>
+              <div class="g-cols" style="grid-template-columns:repeat(4,1fr);">
+                <span class="on">0–3 months · Assistant</span>
+                <span>3–9 · Transaction</span>
+                <span>9–18 · AI marketplace</span>
+                <span>18+ · Agents &amp; MCP</span>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Consumer</div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar red" style="left:0%; width:24%;">Intake and matching</div>
+                <div class="bar" style="left:25.5%; width:23.5%;">Booking and payment</div>
+                <div class="bar" style="left:50.5%; width:24%;">Quote intelligence</div>
+                <div class="bar" style="left:75.5%; width:24.5%;">Booked by outside agents</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Provider</div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar red" style="left:0%; width:24%;">Job inbox, accept or decline</div>
+                <div class="bar" style="left:25.5%; width:23.5%;">Calendar and payouts</div>
+                <div class="bar" style="left:50.5%; width:24%;">AI quote assist</div>
+                <div class="bar" style="left:75.5%; width:24.5%;">CRM and scheduling sync</div>
+              </div>
+            </div>
+            <div class="g-row">
+              <div class="g-lane">Platform</div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar ghost" style="left:0%; width:24%;">Manual ops allowed</div>
+                <div class="bar" style="left:25.5%; width:23.5%;">Trust, refunds, fraud</div>
+                <div class="bar" style="left:50.5%; width:24%;">Dynamic matching</div>
+                <div class="bar" style="left:75.5%; width:24.5%;">MCP endpoints</div>
+              </div>
+            </div>
+            <div class="g-row" style="flex:0.55;">
+              <div class="g-lane" style="font-size:13px; color:var(--faint); text-transform:uppercase; letter-spacing:0.08em;">Goal</div>
+              <div class="track">
+                <i class="gl" style="left:25%"></i><i class="gl" style="left:50%"></i><i class="gl" style="left:75%"></i>
+                <div class="bar" style="left:0%; width:24%; border:0; background:transparent; color:var(--red); padding:0 4px; font-size:14px;">Demand + liquidity</div>
+                <div class="bar" style="left:25.5%; width:23.5%; border:0; background:transparent; color:var(--red); padding:0 4px; font-size:14px;">The economics</div>
+                <div class="bar" style="left:50.5%; width:24%; border:0; background:transparent; color:var(--red); padding:0 4px; font-size:14px;">Conversion, lower cost</div>
+                <div class="bar" style="left:75.5%; width:24.5%; border:0; background:transparent; color:var(--red); padding:0 4px; font-size:14px;">Local transaction layer</div>
+              </div>
+            </div>
+          </div>
+          <div class="band"><p class="q">MCP is the last step, not the first one.</p></div>
+        </div>
+      </section>
+
+      <!-- 15 CLOSE -->
+      <section class="slide" data-time="1:00" data-notes="收尾别急。先窄、先跑通交易、先证明单位经济，再谈扩张。然后主动点出没讲到的部分——招水管工、定价测试、出事怎么办——这是取舍不是遗漏，语气要自信。说完停住等提问。准备好三个问题：怎么招到前 30 个 plumber、为什么不先做 HVAC、owned demand 不成立怎么办。">
+        <div class="sec"><span class="name">Close</span><span class="rule"></span></div>
+        <div class="body center">
+          <h1 style="font-size:72px; max-width:11em; line-height:1.1; margin-bottom:30px;">Start narrow.<br>Build liquidity.<br>Prove economics.<br>Then scale.</h1>
+          <p style="font-size:23px; color:var(--muted);">Columbus · Plumbing · AI Home Repair Assistant</p>
+        </div>
+      </section>
+
+      <div class="footer">
+        <span>NewsBreak Local AI Commerce · Columbus Home Services</span>
+        <span id="footNum">1 / 14</span>
+      </div>
+      <div class="bar-p"><i id="prog"></i></div>
+    </div>
+  </div>
+  </div>
+</div>
+
+<div class="hud">
+  <span>← → Space · <kbd>N</kbd> 讲稿 · <kbd>P</kbd> 演讲者浮窗（置顶 · 不入镜）· <kbd>[</kbd> 浮窗字号 · <kbd>]</kbd> 浮窗尺寸 · <kbd>F</kbd> fullscreen · demo 页 <kbd>=</kbd> <kbd>-</kbd> <kbd>0</kbd> 缩放</span>
+  <span id="hudNum">1 / 14</span>
+</div>
+<aside class="notes" id="notes"></aside>
+
+<script>
+  const SCRIPT = [{"n": "01", "title": "Cover", "time": "0:35", "cue": "开场只做一件事：<b>把今天的问题缩到一句话</b>。别急着讲方案。第一句就抬头，先建立眼神接触。", "g": [[{"t": "<i class=\"look\">▲</i>Hi, I'm Wei. Thanks for the time."}, {"t": "So — one question today. Just one."}], [{"t": "Can NewsBreak turn local traffic into a <em>completed job</em>?"}, {"t": "<i class=\"look\">▲</i>Not a click. Not a lead. A job that gets done."}], [{"t": "My answer is yes — if we start small."}, {"t": "<i class=\"look\">▲</i>Columbus. Plumbing. Let me show you why."}]]}, {"n": "02", "title": "Recommendation", "time": "1:45", "cue": "先给结论，再讲那条线，用手指着从左到右走一遍。<b>下面三张卡是题目点名要的 key hypotheses</b>——每条都写了什么情况下算输，要讲出「我愿意被证明是错的」这个态度。", "g": [[{"t": "<i class=\"look\">▲</i>So — here's what I'd do first."}, {"t": "Start with plumbing. Only plumbing."}, {"t": "And only a few ZIP codes in Columbus."}, {"t": "Then make one job work, from start to finish."}], [{"t": "This line at the top is my whole talk."}, {"t": "A woman reads a local story. It's going to freeze tonight."}, {"t": "The AI asks a few questions and figures out what's wrong."}, {"t": "That becomes a real job. Structured. Not a lead."}, {"t": "We find a plumber nearby who's free. And the job gets done."}], [{"t": "<i class=\"look\">▲</i>Now — I'm making three bets here."}, {"t": "One. She calls someone because she read something. Not because she searched."}, {"t": "Two. Plumbers will say yes, if we ask the right questions first."}, {"t": "Three. One finished job can pay for itself."}], [{"t": "<i class=\"look\">▲</i>I'll come back to each one at the end."}, {"t": "And <em>if the first bet is wrong, the rest doesn't matter.</em>"}], [{"t": "So — start narrow. Then scale."}]]}, {"n": "03", "title": "Why Plumbing", "time": "1:15", "cue": "三个理由，第二个最重要——<b>“知道症状不知道叫谁”，这是 AI 唯一真正有用的地方</b>。开头那句自问自答，语气可以轻松点。", "g": [[{"t": "<i class=\"look\">▲</i>So why plumbing? Why not HVAC — the tickets are bigger."}, {"t": "Three reasons."}], [{"t": "Urgency. A leak gets fixed today. Not next week."}, {"t": "<i class=\"look\">▲</i>Nothing else in the house is that urgent."}], [{"t": "Second — and this is the one I care about most."}, {"t": "<em>People know the symptom. They don't know the service.</em>"}, {"t": "She knows there's water on the floor. She has no idea if that's a plumber or a handyman."}, {"t": "<i class=\"look\">▲</i>And that confusion is exactly where AI is useful."}], [{"t": "Third, speed. Plumbing closes in days. So in ninety days I have real data."}, {"t": "Plumbing isn't highest on every row. It's the only one strong on all four."}]]}, {"n": "04", "title": "The Market", "time": "0:55", "cue": "左右两边各讲一句，重点在中间那个箭头。<b>最后一句“断的是中间”要说得干脆</b>，然后停住。", "g": [[{"t": "<i class=\"look\">▲</i>Columbus isn't missing demand. And it's not missing plumbers."}, {"t": "A hundred seventy-two thousand homeowners. That's Census data."}], [{"t": "And these people already search — Google, Yelp, Angi."}], [{"t": "On the other side, hundreds of licensed plumbers."}, {"t": "So supply isn't the problem."}], [{"t": "But nobody answers three simple questions in real time."}, {"t": "Is he free right now? Does he drive to this ZIP? Does he want this job?"}, {"t": "So we're not short of plumbers. We just can't tell who's free."}], [{"t": "<i class=\"look\">▲</i>Both sides are here. <em>What's broken is the middle.</em>"}]]}, {"n": "05", "title": "Right to Win", "time": "1:30", "cue": "全场最重要的一页，<b>可以在这里多停 10 秒</b>。先讲下面那条（对手），再讲上面那条（我们）——对比才成立。", "g": [[{"t": "<i class=\"look\">▲</i>This is the most important slide in the deck. If you remember one, make it this one."}, {"t": "Look at the timeline. It starts when the pipe starts leaking. It ends when the job is done."}], [{"t": "The bottom row is Google and Angi."}, {"t": "For the first few hours, they're just not in the picture."}, {"t": "They have to wait for her to search."}], [{"t": "<i class=\"look\">▲</i>The top row is us."}, {"t": "At hour zero, she's already on NewsBreak. Reading that it's going to freeze tonight."}, {"t": "<em>So we're on her screen before she searches.</em> Sometimes hours before."}], [{"t": "And that gap is the one thing Google can't copy."}, {"t": "<i class=\"look\">▲</i>They can build better AI than us. Fine. They can't buy the moment."}], [{"t": "It's not a better search result. It's a different starting point."}]]}, {"n": "06", "title": "Reality Check", "time": "1:05", "cue": "主动认怂的一页，<b>诚实本身就是加分项</b>。语气放松，像在说心里话，不要像在汇报。", "g": [[{"t": "<i class=\"look\">▲</i>Let me be honest about something."}, {"t": "<em>The AI part is not our moat.</em>"}], [{"t": "Thumbtack has natural language intake. So does Angi. So does Yelp."}, {"t": "And honestly? You can already do a lot of this inside ChatGPT."}], [{"t": "Look at my column on the right."}, {"t": "Almost every row says “must have.” Not “advantage.” Must have."}, {"t": "<i class=\"look\">▲</i>We build these because without them we're not in the game. Not because they win it."}], [{"t": "The only row where we're different is the last one. Local context."}, {"t": "<i class=\"look\">▲</i>So AI is the baseline. <em>Local intent is the wedge.</em>"}]]}, {"n": "07", "title": "The Product", "time": "1:20", "cue": "四步讲快一点，<b>把时间留给最后的报价对比</b>——那是用户最焦虑的地方，也最能体现产品思考。", "g": [[{"t": "<i class=\"look\">▲</i>So what is the product, actually?"}, {"t": "It's turning “something is leaking” into <em>a job a plumber will take</em>."}], [{"t": "Four steps."}, {"t": "She says what's wrong. Text, a photo, or voice."}, {"t": "The AI asks two or three questions. Not twenty."}, {"t": "Then it writes the job — what's broken, how urgent, when she's home. And she confirms it."}, {"t": "Then we match a plumber who's close, free, and quick to reply."}], [{"t": "Now this last step matters a lot. The quotes."}, {"t": "She sees three prices. Two-twenty, three-ten, three-ninety."}], [{"t": "<i class=\"look\">▲</i>And her real question is — why? Why is one almost double?"}, {"t": "One includes the trip fee. One includes parts."}, {"t": "<i class=\"look\">▲</i>So the AI explains the difference. <em>She still decides.</em>"}]]}, {"n": "08", "title": "Experience", "time": "0:50", "cue": "这页<b>要讲得快</b>，最后一句直接翻页开始 demo，别停。", "g": [[{"t": "<i class=\"look\">▲</i>One hard rule. <em>It still has to feel like NewsBreak.</em>"}, {"t": "If tapping this drops her into a separate AI app, we've lost her."}], [{"t": "So the entry points are things she opens anyway. A feed card. A freeze alert. An article."}, {"t": "Nothing new on the tab bar."}], [{"t": "And she taps. She doesn't type."}, {"t": "The plumber side is a work tool. It answers one question — is this worth my time?"}], [{"t": "<i class=\"look\">▲</i>Let me just show you."}]]}, {"n": "09", "title": "Live Demo", "time": "2:45", "cue": "<b>点之前先说，说完再点</b>，不然观众来不及看。手抖也没关系，按 <b>R</b> 可以随时重来。<br> 按 <b>2</b> 切水管工，按 <b>1</b> 切回用户，按 <b>3</b> 看水管工注册（被问到供给才用）。<br> 画面大小：<b>=</b> 放大 · <b>−</b> 缩小 · <b>0</b> 还原。<b>浮窗挡住手机</b>：按 <b>]</b> 换窄尺寸，或拖它顶部那条 Chrome 标题栏（只有那条能拖）。", "g": [[{"t": "<i class=\"look\">▲</i>So this is a real prototype. Not pictures. Let me show you one job, start to finish."}], [{"t": "Her Local tab. Normal NewsBreak. And tonight, a freeze warning.", "d": "Feed"}, {"t": "She opens the story — and right inside it: “Worried about your pipes?”", "d": "文章 → 入口"}], [{"t": "So the AI asks three things. Where, how bad, when she's home. All taps, about ten seconds.", "d": "追问"}], [{"t": "And here's the job it built. Kitchen sink, leaks when the water runs, today three to six.", "d": "Review"}, {"t": "And notice — her address isn't shared yet."}], [{"t": "Now the plumber's side. This isn't a lead — he sees the problem, the distance, and what similar jobs closed at.", "d": "按 2"}], [{"t": "He sends two-twenty. Two taps.", "d": "报价"}], [{"t": "Back to her. Three quotes already in, and the AI explains why they differ.", "d": "按 1 → Quotes"}], [{"t": "She picks one, picks a time, books it. Then she can track him and message him.", "d": "Booking"}], [{"t": "Job's done. She rates it — and that review goes back into NewsBreak local.", "d": "完成"}], [{"t": "<i class=\"look\">▲</i>So that's the loop. <em>A story, to a job, to a plumber, to done.</em>"}, {"t": "<i class=\"look\">▲</i>And it never left NewsBreak."}]]}, {"n": "10", "title": "Where We Launch", "time": "1:35", "cue": "第一条一定要说成 <b>“读的人和付钱的人不是同一个”</b>，不能说成“避开低收入区”。后面补一句 wave two，态度就完整了。", "g": [[{"t": "<i class=\"look\">▲</i>People always ask about market share. So let me be straight."}, {"t": "There's no public number for NewsBreak's users in Columbus."}, {"t": "So I'm not going to invent “we'll take five percent.”"}], [{"t": "So I picked three to five ZIPs, right next to each other."}, {"t": "So why these? Three reasons."}], [{"t": "<i class=\"look\">▲</i>First — <em>the reader has to be the person who pays.</em>"}, {"t": "In Upper Arlington, seventy-nine percent of people own their home."}, {"t": "Next to campus, it's seventeen percent. That's student housing."}, {"t": "She reads the same story. But she calls her landlord, not a plumber."}, {"t": "So those ZIPs are wave two. Through property managers."}], [{"t": "Second, the pipes have to actually break. These are old houses, built in the fifties."}, {"t": "Third, one plumber has to cover all of them. One connected strip, six miles across."}], [{"t": "<i class=\"look\">▲</i>And on the right — I'll report one number. <em>Completed jobs.</em>"}]]}, {"n": "11", "title": "GTM", "time": "1:45", "cue": "重点是<b>前两条泳道的错位</b>——供给第 0 天开始，需求第 31 天才放。讲的时候用手比一下那个空档。", "g": [[{"t": "<i class=\"look\">▲</i>Ninety days, four tracks. And the thing I'd point at is the gap between the first two."}, {"t": "Supply starts on day zero. Demand stays closed until day thirty-one."}], [{"t": "That's on purpose."}, {"t": "<i class=\"look\">▲</i>Because <em>the fastest way to kill a marketplace is to send demand before supply can catch it.</em>"}], [{"t": "She asks for a plumber, nobody answers, and she's gone."}], [{"t": "So — first thirty days, we recruit twenty to thirty plumbers. Lock in their ZIPs and hours."}, {"t": "Then we open demand. But only five to ten percent. And we test where it comes from."}, {"t": "Then the last thirty days, we scale only the entries that converted."}], [{"t": "Then we A/B the AI intake against a plain form — because I want to know if the AI is doing the work."}], [{"t": "And money — we don't touch it until day sixty."}, {"t": "<i class=\"look\">▲</i>Then at day ninety, we follow the bottleneck. Not the roadmap."}]]}, {"n": "12", "title": "Economics", "time": "1:20", "cue": "<b>一定要主动说 12% 是假设不是定价</b>，不然会被追问。最后一句是这页真正的观点。", "g": [[{"t": "<i class=\"look\">▲</i>On money — early on, I'm not in a hurry."}, {"t": "Phase one, jobs are free. We're buying trust and liquidity. Not revenue."}], [{"t": "Phase two, we take a share."}, {"t": "But only on jobs that actually finish."}], [{"t": "So here's one job. She pays three hundred fifty. The plumber keeps three-oh-eight. We take forty-two."}, {"t": "That's twelve percent."}], [{"t": "<i class=\"look\">▲</i>And let me be clear — <em>twelve percent is a starting assumption. It is not a price.</em>"}, {"t": "Out of that forty-two we still pay for payments, support, refunds, the AI."}, {"t": "So contribution margin gets measured. Never assumed."}], [{"t": "<i class=\"look\">▲</i>And that last line is what I'd say to a plumber."}, {"t": "Don't judge us on cost per lead. <em>Judge us on cost per completed job.</em>"}]]}, {"n": "13", "title": "Success", "time": "1:25", "cue": "指标顺着箭头念一遍就行。<b>记得点明这是第 2 页那三个赌注回来了</b>，首尾呼应。力气留给右边的 Owned demand %。", "g": [[{"t": "<i class=\"look\">▲</i>So what are we testing? It's not whether people like AI."}, {"t": "<em>We're testing whether the marketplace exists at all.</em>"}], [{"t": "Same line as before. But now there's a metric on each arrow."}, {"t": "Match rate. Response time. Booking conversion."}], [{"t": "And the north star is that last box. Completed jobs. Not conversations."}, {"t": "So — remember my three bets? These are the same three. Now each one has a number."}], [{"t": "<i class=\"look\">▲</i>But if I could only keep one, it's this one on the right. <em>Owned demand percent.</em>"}, {"t": "How many completed jobs came from NewsBreak's own feed and weather — instead of someone who'd have searched Google anyway."}, {"t": "<i class=\"look\">▲</i>If that number is high, the whole thesis is true."}], [{"t": "If it's low, we're just another lead site with a nicer app."}]]}, {"n": "14", "title": "Roadmap", "time": "1:05", "cue": "这页讲快，<b>唯一要强调的是 MCP 在最后一格</b>——很多人会把它当 MVP 卖，你不这么做，这是加分。", "g": [[{"t": "<i class=\"look\">▲</i>Okay, longer term. Three tracks — consumer, provider, platform."}, {"t": "And the rule is simple. <em>Each phase only starts once the last one is proven.</em>"}], [{"t": "So the first three months is only that left column."}, {"t": "Intake and matching. A job inbox for plumbers. And manual operations behind it — which is fine."}], [{"t": "Then booking and payment. Then smarter matching."}], [{"t": "<i class=\"look\">▲</i>Now look at the far right. MCP — letting outside AI agents book our plumbers."}, {"t": "That's after eighteen months. It only works once we have real supply."}], [{"t": "<i class=\"look\">▲</i><em>MCP is the last step. Not the first.</em>"}]]}, {"n": "15", "title": "Close", "time": "1:00", "cue": "收尾别急。<b>“没讲到的部分”要说成主动取舍，不是没准备好</b>——语气自信，别像道歉。最后一句说完就停住，看着镜头，等他们开口。", "g": [[{"t": "<i class=\"look\">▲</i>Okay — so that's the whole argument."}], [{"t": "Start small. Make both sides work. Then grow."}, {"t": "Columbus. Plumbing. An AI assistant that turns a local story into a job that gets done."}], [{"t": "Now, to keep this to twenty minutes, I had to cut a lot."}, {"t": "How we sign up the first plumbers. The pricing tests. What we do when a job goes wrong."}], [{"t": "<i class=\"look\">▲</i>I've thought those through — so please ask about any of them."}, {"t": "And if anything comes up later, just reach out any time."}], [{"t": "<i class=\"look\">▲</i>Thank you."}]]}];
+  const slides = [...document.querySelectorAll(".slide")];
+  const notesEl = document.getElementById("notes");
+  const wrap = document.getElementById("wrap");
+
+  function scriptHTML(idx) {
+    const d = SCRIPT[idx];
+    if (!d) return "";
+    return d.g.map(function (g) {
+      return "<div class='grp'>" + g.map(function (l) {
+        return "<p>" + (l.d ? "<span class='do'>" + l.d + "</span>" : "") + l.t + "</p>";
+      }).join("") + "</div>";
+    }).join("");
+  }
+
+  // Cumulative seconds through the end of each slide, so the presenter window can
+  // say "you are two minutes long" instead of just showing a stopwatch.
+  const PACE = (function () {
+    let sum = 0;
+    return SCRIPT.map(function (d) {
+      const p = d.time.split(":");
+      sum += (+p[0]) * 60 + (+p[1]);
+      return sum;
+    });
+  })();
+  const mmss = (n) => (n < 0 ? "-" : "") + Math.floor(Math.abs(n) / 60) + ":" + String(Math.abs(n) % 60).padStart(2, "0");
+  const viewport = document.getElementById("viewport");
+  let i = Math.max(0, (parseInt(new URLSearchParams(location.search).get("s"), 10) || 1) - 1);
+  let notesOn = false;
+
+  function render() {
+    slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+    const label = (i + 1) + " / " + slides.length;
+    document.getElementById("footNum").textContent = label;
+    document.getElementById("hudNum").textContent = label;
+    document.getElementById("prog").style.width = ((i + 1) / slides.length * 100) + "%";
+    const s = slides[i];
+    const d = SCRIPT[i];
+    notesEl.innerHTML = d
+      ? "<div class='time'>" + d.n + " · " + d.title + " · " + d.time + "</div>" +
+        "<div class='cue'>" + d.cue + "</div>" + scriptHTML(i)
+      : "<div class='time'>" + (s.dataset.time || "") + "</div>" + (s.dataset.notes || "");
+    notesEl.classList.toggle("on", notesOn);
+    paintPresenter();
+
+    // The prototype loads the first time we land on it and then keeps its state,
+    // so stepping back a slide never throws away a half-finished walkthrough.
+    const onDemo = s.classList.contains("demo");
+    document.body.classList.toggle("on-demo", onDemo);
+    const frame = document.getElementById("demoFrame");
+    if (onDemo && frame && !frame.dataset.loaded) {
+      frame.dataset.loaded = "1";
+      frame.setAttribute("src", "demo/out/index.html");
+    }
+    if (onDemo && frame) setTimeout(() => frame.focus(), 60);
+  }
+  // A real second window rather than an overlay. Sharing only the deck window in
+  // Zoom or recording a single window leaves this one out of the capture, which
+  // an in-page panel can never do no matter how it is styled.
+  let pres = null, t0 = null, tick = null;
+  // The prototype sits on the right half of its slide, so the narrow preset can
+  // be parked on the left without covering the phone.
+  // Chrome ignores both the size hint on requestWindow and resizeTo() once a
+  // picture-in-picture window exists — it remembers whatever the user last
+  // dragged it to. So [ cycles the type size, which is pure CSS and always
+  // works. To get the window out of the demo's way, drag it, or press - to
+  // shrink the prototype instead.
+  const PRES_TEXT = [[0.85, "\u5c0f"], [1, "\u4e2d"], [1.18, "\u5927"]];
+  // Chrome cannot be told where to put a picture-in-picture window — that is
+  // spec'd out, so moving it is always a manual drag of Chrome's own title bar.
+  // Size it can honour, but only if preferInitialWindowPlacement opts out of
+  // Chrome's habit of reusing whatever size the window had last time.
+  const PRES_SIZES = [[1020, 700, "\u4e2d"], [1180, 820, "\u5bbd"], [700, 860, "\u7a84"]];
+  let presSize = 0;
+  let presText = 1;
+  const PRES_CSS =
+    "*{box-sizing:border-box}" +
+    "html,body{height:100%}" +
+    "body{--fit:1;margin:0;background:#0E0E0F;color:#EDEDED;font-family:Inter,'PingFang SC',sans-serif;display:flex;flex-direction:column;overflow:hidden}" +
+    "header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:11px 18px;border-bottom:1px solid #2A2A2C;flex:0 0 auto}" +
+    "#pn{color:#7C7C80;font-size:13px;font-weight:700;margin-right:9px}" +
+    "#pt{color:#FF6B85;font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.02em}" +
+    ".r{display:flex;align-items:baseline;gap:13px}" +
+    "#ppace{font-size:13px;font-weight:700}" +
+    "#pclock{font-size:23px;font-weight:800;font-variant-numeric:tabular-nums}" +
+    "main{flex:1;overflow:auto;padding:16px 20px}" +
+    "#pcue{font-size:calc(14px*var(--fit));line-height:1.6;color:#C9A3AC;border-left:2px solid #6E2233;padding-left:12px;margin-bottom:calc(18px*var(--fit))}" +
+    "#pcue b{color:#F090A2}" +
+    ".grp{margin-bottom:calc(15px*var(--fit))}" +
+    ".grp p{margin:0 0 calc(5px*var(--fit));font-size:calc(21px*var(--fit));line-height:1.42}" +
+    "em{font-style:normal;color:#FF8FA3;font-weight:600}" +
+    ".look{font-style:normal;color:#FF6B85;font-size:calc(15px*var(--fit));margin-right:7px;vertical-align:2px}" +
+    ".do{display:inline-block;background:#2C2C2C;color:#9C9C9C;border-radius:4px;padding:1px 7px;margin-right:8px;font-size:calc(14px*var(--fit));font-weight:700}" +
+    "footer{flex:0 0 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:9px 18px;border-top:1px solid #2A2A2C;font-size:12px;color:#7C7C80}" +
+    "#pnext{color:#B0B0B4}.w{color:#C9A046;white-space:nowrap}";
+  const PRES_HEAD =
+    "<meta charset='utf-8'><title>Presenter \u2014 Columbus Plumbing</title>" +
+    "<link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>" +
+    "<link href='https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' rel='stylesheet'>" +
+    "<style>" + PRES_CSS + "</style>";
+  const PRES_BODY =
+    "<header><div><span id='pn'></span><b id='pt'></b></div>" +
+    "<div class='r'><span id='ppace'></span><span id='pclock'>0:00</span></div></header>" +
+    "<main><div id='pcue'></div><div id='pbody'></div></main>" +
+    "<footer><span id='pnext'></span><span class='w'><b id='psize'></b> \u2190 \u2192 \u7ffb\u9875 \u00b7 T \u8ba1\u65f6 \u00b7 [ \u5b57\u53f7 \u00b7 ] \u5c3a\u5bf8\uff08\u4e3b\u7a97\u53e3\u6309\uff09\u00b7 \u62d6\u9876\u90e8\u6807\u9898\u680f\u79fb\u52a8</span></footer>";
+
+  async function openPresenter(allowPopup) {
+    if (pres && !pres.closed) { pres.focus(); paintPresenter(); return; }
+    const W = PRES_SIZES[presSize][0], H = PRES_SIZES[presSize][1];
+    // Picture-in-picture floats above every other window. A plain popup gets
+    // buried the moment you click the deck to drive the prototype, which is
+    // exactly when you still need the script.
+    if (window.documentPictureInPicture) {
+      try { pres = await documentPictureInPicture.requestWindow({ width: W, height: H, preferInitialWindowPlacement: true }); }
+      catch (err) { pres = null; }
+    }
+    let popup = false;
+    if (!pres) {
+      // A plain window is not always-on-top, so it is only ever a first-open
+      // fallback. During a resize, silently keeping the old size beats dropping
+      // a non-floating window on top of the deck mid-sentence.
+      if (allowPopup === false) return;
+      // Fallback for browsers without document PiP: park it top-centre, just
+      // under the webcam, so your eyes stay near the lens.
+      const left = Math.round((screen.availWidth - W) / 2);
+      const top = (screen.availTop || 0) + 8;
+      pres = window.open("", "nb-presenter", "width=" + W + ",height=" + H + ",left=" + left + ",top=" + top);
+      if (!pres) { alert("\u6d4f\u89c8\u5668\u62e6\u622a\u4e86\u5f39\u7a97\u3002\u5141\u8bb8\u672c\u9875\u5f39\u51fa\u7a97\u53e3\u540e\u518d\u6309 P\u3002"); return; }
+      popup = true;
+    }
+    if (popup) {
+      pres.document.open();
+      pres.document.write("<!DOCTYPE html><html lang='en'><head>" + PRES_HEAD + "</head><body>" + PRES_BODY + "</body></html>");
+      pres.document.close();
+    } else {
+      pres.document.head.innerHTML = PRES_HEAD;
+      pres.document.body.innerHTML = PRES_BODY;
+    }
+    pres.document.addEventListener("keydown", presKey);
+    pres.addEventListener("resize", fitPresenter);
+    // Chrome picks its own spot for a PiP window, usually a corner. Nudge it up
+    // to centre-top so your eyes stay near the lens. Blocked in some builds,
+    // in which case dragging it once is enough — Chrome remembers.
+    try { pres.moveTo(Math.round((screen.availWidth - W) / 2), (screen.availTop || 0) + 8); } catch (err) {}
+    if (t0 === null) t0 = Date.now();
+    if (!tick) tick = setInterval(paintClock, 500);
+    paintPresenter();
+  }
+  // Chrome allows only one picture-in-picture window, so a resize has to be a
+  // close and reopen. requestWindow needs a real key press, which is why this is
+  // never wired through the prototype's postMessage bridge — a forwarded call
+  // has no user gesture behind it and Chrome would reject it.
+  async function cyclePresenterSize() {
+    if (!pres || pres.closed) { presSize = (presSize + 1) % PRES_SIZES.length; await openPresenter(true); return; }
+    const prev = presSize;
+    presSize = (presSize + 1) % PRES_SIZES.length;
+    try { pres.close(); } catch (err) {}
+    pres = null;
+    await openPresenter(false);
+    // Chrome refused the new window. Put the old size back and try once more,
+    // then give up loudly rather than leaving the presenter gone mid-talk.
+    if (!pres || pres.closed) { presSize = prev; await openPresenter(false); }
+    if (!pres || pres.closed) await openPresenter(true);
+  }
+  function cyclePresenterText() {
+    presText = (presText + 1) % PRES_TEXT.length;
+    if (!pres || pres.closed) { openPresenter(true); return; }
+    paintPresenter();
+  }
+  function presKey(e) {
+    if (["ArrowRight", "ArrowDown", " ", "PageDown"].includes(e.key)) { e.preventDefault(); go(i + 1); }
+    if (["ArrowLeft", "ArrowUp", "Backspace", "PageUp"].includes(e.key)) { e.preventDefault(); go(i - 1); }
+    if (e.key === "Home") { e.preventDefault(); go(0); }
+    if (e.key === "End") { e.preventDefault(); go(slides.length - 1); }
+    if (e.key === "t" || e.key === "T") { t0 = Date.now(); paintClock(); }
+    if (e.key === "[") { e.preventDefault(); cyclePresenterText(); }
+    if (e.key === "n" || e.key === "N") { notesOn = !notesOn; render(); }
+    if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomDemo(-1); }
+    if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomDemo(1); }
+    if (e.key === "0") { e.preventDefault(); zoomDemo(0); }
+    // ] is deliberately absent: reopening the window needs a user gesture in the
+    // deck, and a gesture made inside this window does not count.
+  }
+  function paintPresenter() {
+    if (!pres || pres.closed) return;
+    const doc = pres.document, d = SCRIPT[i];
+    if (!doc.getElementById("pbody")) return;
+    doc.getElementById("pn").textContent = (i + 1) + " / " + slides.length;
+    doc.getElementById("pt").textContent = d ? d.title : "";
+    doc.getElementById("pcue").innerHTML = d ? d.cue : "";
+    doc.getElementById("pbody").innerHTML = scriptHTML(i);
+    const nx = SCRIPT[i + 1];
+    const sz = doc.getElementById("psize");
+    if (sz) sz.textContent = PRES_TEXT[presText][1] + "\u5b57 \u00b7 " + PRES_SIZES[presSize][2] + "\u7a97 \u00b7 ";
+    doc.getElementById("pnext").textContent = nx
+      ? "\u4e0b\u4e00\u9875 \u00b7 " + nx.title + " \u00b7 " + nx.time
+      : "\u6700\u540e\u4e00\u9875";
+    fitPresenter();
+    doc.querySelector("main").scrollTop = 0;
+    paintClock();
+  }
+  // Scrolling the script while also paging the deck is two competing gestures,
+  // so the text shrinks to fit instead. The floor keeps it readable from a
+  // normal sitting distance; nothing in the deck comes close to hitting it.
+  function fitPresenter() {
+    if (!pres || pres.closed) return;
+    const body = pres.document.body, main = pres.document.querySelector("main");
+    if (!main) return;
+    const base = PRES_TEXT[presText][0];
+    let f = base;
+    body.style.setProperty("--fit", String(base));
+    while (main.scrollHeight > main.clientHeight && f > 0.6) {
+      f -= 0.03;
+      body.style.setProperty("--fit", f.toFixed(2));
+    }
+  }
+  function paintClock() {
+    if (!pres || pres.closed || t0 === null) return;
+    const doc = pres.document;
+    // Self-healing sync. Every path that moves the deck is supposed to repaint
+    // the window, but a window that silently sits on the wrong slide is the one
+    // failure you cannot recover from while talking, so check rather than trust.
+    const pn = doc.getElementById("pn");
+    if (pn && pn.textContent !== (i + 1) + " / " + slides.length) { paintPresenter(); return; }
+    const el = Math.round((Date.now() - t0) / 1000);
+    const c = doc.getElementById("pclock");
+    if (c) c.textContent = mmss(el);
+    const p = doc.getElementById("ppace");
+    if (!p) return;
+    // Compared against the window this slide should occupy, not a single instant,
+    // so it does not flash "ahead" for the whole time you are on the slide.
+    const lo = i ? PACE[i - 1] : 0, hi = PACE[i];
+    if (el < lo) { p.textContent = "\u5feb\u4e86 " + mmss(lo - el); p.style.color = "#7FA8D8"; }
+    else if (el <= hi) { p.textContent = "on time"; p.style.color = "#5BBE7E"; }
+    else { p.textContent = "\u6162\u4e86 " + mmss(el - hi); p.style.color = "#FF6B85"; }
+  }
+  window.addEventListener("beforeunload", function () { if (pres && !pres.closed) pres.close(); });
+
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    try { history.replaceState(null, "", "?s=" + (i + 1)); } catch (e) {}
+    render();
+  }
+  function scale() {
+    const s = Math.min(window.innerWidth / 1440, Math.max(200, window.innerHeight - 28) / 810);
+    wrap.style.transform = "scale(" + s + ")";
+    viewport.style.width = (1440 * s) + "px";
+    viewport.style.height = (810 * s) + "px";
+  }
+  window.addEventListener("resize", scale);
+  // The prototype renders at a fixed size, so on a shared screen the only way to
+  // make the phone readable from the back of a call is to scale the whole frame.
+  // The phone is 875px tall inside a 900px stage, so it already fills the slide
+  // vertically — anything past ~1.1 just crops the status bar and the tab bar.
+  // The headroom is downward, for when the script window overlaps the device.
+  const DZ = [0.7, 0.8, 0.9, 1, 1.1];
+  let dzi = 3, dzT = null;
+  function zoomDemo(step) {
+    const f = document.getElementById("demoFrame"), b = document.getElementById("demoZoom");
+    if (!f || !slides[i].classList.contains("demo")) return;
+    dzi = step === 0 ? 3 : Math.max(0, Math.min(DZ.length - 1, dzi + step));
+    f.style.setProperty("--dz", DZ[dzi]);
+    b.textContent = Math.round(DZ[dzi] * 100) + "%";
+    b.classList.add("show");
+    clearTimeout(dzT);
+    dzT = setTimeout(() => b.classList.remove("show"), 1100);
+  }
+  document.addEventListener("keydown", (e) => {
+    if (["ArrowRight", "ArrowDown", " ", "PageDown"].includes(e.key)) { e.preventDefault(); go(i + 1); }
+    if (["ArrowLeft", "ArrowUp", "Backspace", "PageUp"].includes(e.key)) { e.preventDefault(); go(i - 1); }
+    if (e.key === "Home") go(0);
+    if (e.key === "End") go(slides.length - 1);
+    if (e.key === "n" || e.key === "N") { notesOn = !notesOn; render(); }
+    if (e.key === "p" || e.key === "P") openPresenter(true);
+    if (e.key === "[") cyclePresenterText();
+    if (e.key === "]") cyclePresenterSize();
+    if (e.key === "-" || e.key === "_") { e.preventDefault(); zoomDemo(-1); }
+    if (e.key === "=" || e.key === "+") { e.preventDefault(); zoomDemo(1); }
+    if (e.key === "0") { e.preventDefault(); zoomDemo(0); }
+    if (e.key === "Escape") { notesOn = false; render(); }
+    if (e.key === "f" || e.key === "F") {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+  // Keys pressed inside the prototype never reach this document, so it forwards
+  // the deck's own shortcuts back out.
+  window.addEventListener("message", (e) => {
+    const d = e.data;
+    if (!d || d.source !== "nb-demo") return;
+    if (d.cmd === "next") go(i + 1);
+    if (d.cmd === "prev") go(i - 1);
+    if (d.cmd === "notes") { notesOn = !notesOn; render(); }
+    if (d.cmd === "zoomOut") zoomDemo(-1);
+    if (d.cmd === "zoomIn") zoomDemo(1);
+    if (d.cmd === "zoomReset") zoomDemo(0);
+    if (d.cmd === "presText") cyclePresenterText();
+    if (d.cmd === "timer") { t0 = Date.now(); paintClock(); }
+    if (d.cmd === "full") {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  document.getElementById("demoPrev").addEventListener("click", (e) => { e.stopPropagation(); go(i - 1); });
+  document.getElementById("demoNext").addEventListener("click", (e) => { e.stopPropagation(); go(i + 1); });
+  document.getElementById("stage").addEventListener("click", (e) => {
+    // Click-to-advance would fight the prototype, which is meant to be tapped.
+    if (slides[i].classList.contains("demo")) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    go(e.clientX > r.left + r.width / 2 ? i + 1 : i - 1);
+  });
+  scale();
+  render();
+</script>
+</body>
+</html>
