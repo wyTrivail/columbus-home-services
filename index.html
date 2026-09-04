@@ -1048,6 +1048,14 @@
     viewport.style.height = (810 * s) + "px";
   }
   window.addEventListener("resize", scale);
+  // A phone reports one width during first paint and a different one once the
+  // address bar and the viewport meta have settled, and it does not always fire
+  // resize in between. Measuring once on load leaves the deck scaled for a width
+  // that no longer exists, which crops it off both edges rather than shrinking it.
+  window.addEventListener("orientationchange", scale);
+  window.addEventListener("load", scale);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", scale);
+  setTimeout(scale, 250);
   // The prototype renders at a fixed size, so on a shared screen the only way to
   // make the phone readable from the back of a call is to scale the whole frame.
   // The phone is 875px tall inside a 900px stage, so it already fills the slide
