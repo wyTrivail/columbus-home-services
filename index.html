@@ -1056,6 +1056,9 @@
   window.addEventListener("load", scale);
   if (window.visualViewport) window.visualViewport.addEventListener("resize", scale);
   setTimeout(scale, 250);
+  // Chrome on a phone keeps adjusting the layout viewport after those events have
+  // all fired, so the only reliable trigger is watching the element itself.
+  if (window.ResizeObserver) new ResizeObserver(scale).observe(document.documentElement);
   // The prototype renders at a fixed size, so on a shared screen the only way to
   // make the phone readable from the back of a call is to scale the whole frame.
   // The phone is 875px tall inside a 900px stage, so it already fills the slide
