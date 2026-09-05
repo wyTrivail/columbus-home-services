@@ -22,7 +22,8 @@
     --chip: #ECEBE5;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: #1A1A1A; color: var(--ink); }
+  html, body {
+    overflow-x: hidden; margin: 0; height: 100%; background: #1A1A1A; color: var(--ink); }
   body { font-family: Inter, "SF Pro Text", "PingFang SC", sans-serif; overflow: hidden; }
 
   .frame { height: 100%; display: flex; align-items: center; justify-content: center; }
@@ -1042,7 +1043,14 @@
     render();
   }
   function scale() {
-    const s = Math.min(window.innerWidth / 1440, Math.max(200, window.innerHeight - 28) / 810);
+    // innerWidth is the layout viewport, and on a phone the deck widens it by
+    // sizing its own container — so measuring it here feeds the next scale back
+    // into itself and settles just wider than the screen. The visual viewport is
+    // the glass, and never moves.
+    const vv = window.visualViewport;
+    const vw = (vv && vv.width) || window.innerWidth;
+    const vh = (vv && vv.height) || window.innerHeight;
+    const s = Math.min(vw / 1440, Math.max(200, vh - 28) / 810);
     wrap.style.transform = "scale(" + s + ")";
     viewport.style.width = (1440 * s) + "px";
     viewport.style.height = (810 * s) + "px";
